@@ -40,18 +40,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-        }
-      }
     });
 
     if (error) {
@@ -60,7 +52,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message,
         variant: "destructive",
       });
+    } else if (data.user) {
+      toast({
+        title: "Account Created",
+        description: "You have been successfully signed up.",
+      });
     } else {
+      // This case happens if you still have email confirmation enabled in your Supabase project.
       toast({
         title: "Success!",
         description: "Please check your email to confirm your account.",
@@ -70,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password:string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
